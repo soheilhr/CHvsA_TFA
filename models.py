@@ -190,7 +190,7 @@ def FCN_Resnet50_32s(input_shape = None, weight_decay=0., batch_momentum=0.9, ba
 
 def simple_net_v0(input_shape, num_classes, weights_path=''):
 
-    sig_input = Input(shape=input_shape)
+    sig_input = Input(shape=(None,None,2))#input_shape)
 
     x = Conv2D(32, (3, 3), padding='same', name='conv1')(sig_input)
     x = Activation('relu')(x)
@@ -220,16 +220,18 @@ def simple_net_v0(input_shape, num_classes, weights_path=''):
 
     x = MaxPooling2D((2, 2))(x)
  
-    x= Flatten()(x)
-    x = Dense(256)(x)
-    x = Dense(num_classes)(x)
-    output = Activation('softmax')(x)
-
-#    ### fully connected    
-#    x = Conv2D(512, (1, 1), kernel_initializer='he_normal', activation='relu', padding='valid', strides=(1, 1))(x)
-#    x = Conv2D(512, (1, 1), kernel_initializer='he_normal', activation='relu', padding='valid', strides=(1, 1))(x)
+#    ### dense   
+#    x = Flatten()(x)
+#    x = Dense(256)(x)
+#    x = Dense(num_classes)(x)
 #
-#    output = Conv2D(num_classes, (1, 1), kernel_initializer='he_normal', activation='softmax', padding='valid', strides=(1, 1))(x)
+#    output = Activation('softmax')(x)
+
+    ### fully connected    
+    x = Conv2D(512, (np.int32(input_shape[-3]/16),np.int32(input_shape[-2]/16)), kernel_initializer='he_normal', activation='relu', padding='valid', strides=(1, 1))(x)
+    x = Conv2D(512, (1, 1), kernel_initializer='he_normal', activation='relu', padding='valid', strides=(1, 1))(x)
+
+    output = Conv2D(num_classes, (1, 1), kernel_initializer='he_normal', activation='softmax', padding='valid', strides=(1, 1))(x)
     
     model = Model(sig_input, output)
 
