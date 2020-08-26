@@ -23,8 +23,9 @@ for idx=1:size(sub_folder_list,1)
 
         feat_tmp=feature_process(dat_tmp(:,idx2),data_shape,true);
         dat_all=cat(3,dat_all,feat_tmp);
-
-        des_tmp=struct('person',sub_folder_list(idx).name,'Class','fast','Antenna',idx2);
+        class_tmp=split(sub_folder_list(idx).folder,'/');
+        class_tmp=class_tmp(end);
+        des_tmp=struct('person',sub_folder_list(idx).name,'Class',class_tmp,'Antenna',idx2);
         des_all=cat(1,des_all,des_tmp);
 
     end

@@ -1,6 +1,6 @@
 function feature_set=feature_process(raw_data,data_shape,decluter)
     window_size=256;
-    overlap_size=32;
+    overlap_size=192;
     fft_size=256;
     decluter_band_width=3;
     
