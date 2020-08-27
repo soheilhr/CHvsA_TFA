@@ -15,6 +15,8 @@ import pandas as pd
 import argparse
 import os
 import time
+import matplotlib.pyplot as plt
+from sklearn.metrics import confusion_matrix,accuracy_score
 
 from models import simple_net_v0
 
@@ -81,13 +83,20 @@ def prepare_train_val(data_path, exp_type='sim_v0',from_merged_path=False, gener
     elif exp_type=='sim_v0':
         dat,des = data_preprocess_simulations(data_path,save=generate_merged_path)
     elif exp_type=='exp_v0':
-        dat,des = data_preprocess_experimental_v0(data_path,save=generate_merged_path)
+#        dat,des = data_preprocess_experimental_v0(data_path,save=generate_merged_path)
+        dat_path = data_path+'dat_merged.npy'
+        des_path = data_path+'des_merged.csv'
+        
+        dat=np.load(dat_path)
+        des=pd.read_csv(des_path,index_col=0)
+        dat=dat[:,:,25:(25+176)]
+
     else:
         print("Error, experiment type not understood\n input either sim_v0 or exp_v0")
         
     dat=np.concatenate([np.expand_dims(np.real(dat),-1),np.expand_dims(np.imag(dat),-1)],-1)
-    des.Class=des.Class.astype('category')
-    
+    des.Class=des.Class.astype('category')    
+        
     train_val_split=0.8
     np.random.seed(0)
     
@@ -98,12 +107,15 @@ def prepare_train_val(data_path, exp_type='sim_v0',from_merged_path=False, gener
     
     x_train=dat[train_idx,...]
     des_train=des.iloc[train_idx]
+    
     y_train=tf.keras.utils.to_categorical(des_train.Class.cat.codes)
-    y_train=np.expand_dims(y_train,(1,2))
+    #y_train=np.expand_dims(y_train,(1,2))
     
     x_val=dat[val_idx,...]
     des_val=des.iloc[val_idx]
     y_val=des_val.Class.cat.codes
+
+
     
     return [x_train,y_train], [x_val,y_val]
 
@@ -121,7 +133,15 @@ def prepare_test(data_path, exp_type='exp_v0',from_merged_path=False, generate_m
     elif exp_type=='sim_v0':
         dat,des = data_preprocess_simulations(data_path,save=generate_merged_path)
     elif exp_type=='exp_v0':
-        dat,des = data_preprocess_experimental_v0(data_path,save=generate_merged_path)
+#        dat,des = data_preprocess_experimental_v0(data_path,save=generate_merged_path)
+        dat_path = data_path+'dat_merged.npy'
+        des_path = data_path+'des_merged.csv'
+        
+        dat=np.load(dat_path)
+        des=pd.read_csv(des_path,index_col=0)
+        dat=dat[:,:,25:(25+176)]
+
+
     else:
         print("Error, experiment type not understood\n input either sim_v0 or exp_v0")
 
@@ -140,13 +160,13 @@ if __name__ == "__main__":
     
     parser = argparse.ArgumentParser(description='Training function TFA v0')
     
-    parser.add_argument('--train_data_path', type=str, default='/data/datasets/simulations/Adult_walking_v0/',
+    parser.add_argument('--train_data_path', type=str, default='/data/datasets/external/Adult_walking_v0/',
                         help='path to train data')
     parser.add_argument('--model_save_path', type=str, default='/data/models/model_dump/',
                         help='path to save model')
-    parser.add_argument('--exp_type', type=str, default='sim_v0',
+    parser.add_argument('--exp_type', type=str, default='exp_v0',
                         help='experiment type: sim_v0 or exp_v0')
-    parser.add_argument('--model_name_tag', type=str, default='',
+    parser.add_argument('--model_name_tag', type=str, default='default',
                         help='model name tag')
     parser.add_argument('--on_gpu', type=str, default='1',
                         help='gpu number')
@@ -157,20 +177,24 @@ if __name__ == "__main__":
     
     
     [x_train, y_train], [x_val, y_val] = prepare_train_val(args.train_data_path, exp_type=args.exp_type,from_merged_path=False, generate_merged_path=False)
-    
-    
+        
     input_shape = x_train.shape[1:]
     class_size = y_train.shape[-1]
     
     model = simple_net_v0(input_shape,class_size)
-    model.fit(x=x_train,y=y_train,epochs=32,batch_size=32,validation_split=0.2)
+    model.fit(x=x_train,y=y_train,epochs=100,batch_size=128,validation_split=0.2)
 
     y_pred_val=model.predict(x_val[:,:,:])
-    y_pred_val_class=np.argmax(np.mean(y_pred_val,(1,2)),1)
+#    y_pred_val_class=np.argmax(np.mean(y_pred_val,(1,2)),1)
+    y_pred_val_class=np.argmax(y_pred_val,1)
     
-    conf_table_val=pd.crosstab(y_pred_val_class,y_val)
+    conf_table_val=confusion_matrix(y_true=y_val,y_pred=y_pred_val_class)
     print("Validation confusion matrix:\n")
     print(conf_table_val)
+    accuracy=accuracy_score(y_val,y_pred_val_class)
+    print("Validation accuracy:\n")
+    print(accuracy)
+    
     model_save_fname=args.model_save_path+'/model_'+args.model_name_tag+'_'+args.exp_type+'_'+str(int(time.time()))+'.h5'
     model.save(model_save_fname)
 

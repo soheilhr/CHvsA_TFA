@@ -17,6 +17,8 @@ import os
 import time
 import json
 import matplotlib.pyplot as plt
+from sklearn.metrics import confusion_matrix,accuracy_score
+
 #from models import simple_net_v0
 
 from tensorflow.keras.models import load_model
@@ -67,7 +69,7 @@ def data_preprocess_simulations(path_dataset='/data/datasets/simulations/Adult_w
 
 ################ test
 
-def prepare_test(data_path, exp_type='exp_v0',from_merged_path=True, generate_merged_path=False):
+def prepare_test(data_path, exp_type='exp_v0',from_merged_path=False, generate_merged_path=False):
 
     if from_merged_path:
         dat_path = data_path+'dat_merged.npy'
@@ -79,7 +81,15 @@ def prepare_test(data_path, exp_type='exp_v0',from_merged_path=True, generate_me
     elif exp_type=='sim_v0':
         dat,des = data_preprocess_simulations(data_path,save=generate_merged_path)
     elif exp_type=='exp_v0':
-        dat,des = data_preprocess_experimental_v0(data_path,save=generate_merged_path)
+#        dat,des = data_preprocess_experimental_v0(data_path,save=generate_merged_path)
+        dat_path = data_path+'dat_merged.npy'
+        des_path = data_path+'des_merged.csv'
+        
+        dat=np.load(dat_path)
+        des=pd.read_csv(des_path,index_col=0)
+
+        dat=dat[:,:,25:(25+176)]
+
     else:
         print("Error, experiment type not understood\n input either sim_v0 or exp_v0")
 
@@ -99,7 +109,7 @@ if __name__ == "__main__":
     
     parser.add_argument('--test_data_path', type=str, default='/data/datasets/external/Adult_walking_v0/',
                         help='path to test data')
-    parser.add_argument('--model_path', type=str, default='/data/models/model_dump/model_default_sim_v0_1598477758.h5',
+    parser.add_argument('--model_path', type=str, default='/data/models/model_dump/model_default_sim_v0_1598496538.h5',
                         help='path to model')
     parser.add_argument('--report_path', type=str, default='./',
                         help='path to report')
@@ -119,7 +129,8 @@ if __name__ == "__main__":
     model = load_model(args.model_path)
      
     y_pred_test=model.predict(x_test[:,:,:])
-    y_pred_test_class=np.argmax(np.mean(y_pred_test,(1,2)),1)
+#    y_pred_test_class=np.argmax(np.mean(y_pred_test,(1,2)),1)
+    y_pred_test_class=np.argmax(y_pred_test,1)
     
     report_data={}
     
@@ -127,7 +138,15 @@ if __name__ == "__main__":
      
     report_file_path=args.report_path+'/'+args.report_name_tag+'_'+args.exp_type+'_'+str(int(time.time()))+'.json'
     
+    conf_table_test=confusion_matrix(y_true=y_test,y_pred=y_pred_test_class)
+    print("Test confusion matrix:\n")
+    print(conf_table_test)
+    accuracy=accuracy_score(y_test,y_pred_test_class)
+    print("Validation accuracy:\n")
+    print(accuracy)
+    
     report_data['conf_table']=str(conf_table_test)
+    report_data['accuracy']=str(accuracy)
         
     with open(report_file_path, 'w') as outfile:
         json.dump(report_data, outfile)
