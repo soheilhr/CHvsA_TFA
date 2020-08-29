@@ -23,7 +23,7 @@ from models import simple_net_v0
 
 
 
-def data_preprocess_experimental_v0(path_dataset='/data/datasets/external/Adult_walking0/', sub_folders=['Fast','Slow','SlowPocket'],save=True):
+def data_preprocess_experimental_v0(path_dataset='/data/datasets/external/Adult_walking_v0/', sub_folders=['Fast','Slow'],save=True):
 
     dat_all=[]
     des_all=[]
