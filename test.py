@@ -88,7 +88,7 @@ def prepare_test(data_path, exp_type='exp_v0',from_merged_path=False, generate_m
         dat=np.load(dat_path)
         des=pd.read_csv(des_path,index_col=0)
 
-        dat=dat[:,:,25:(25+193)]
+        dat=dat[:,:,25:(25+97)]
 
     else:
         print("Error, experiment type not understood\n input either sim_v0 or exp_v0")
