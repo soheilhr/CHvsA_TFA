@@ -69,7 +69,7 @@ def data_preprocess_simulations(path_dataset='/data/datasets/simulations/Adult_w
 
 ################ test
 
-def prepare_test(data_path, exp_type='exp_v0',from_merged_path=False, generate_merged_path=False):
+def prepare_test(data_path, exp_type='exp_v0',from_merged_path=False, generate_merged_path=False,window_size=97):
 
     if from_merged_path:
         dat_path = data_path+'dat_merged.npy'
@@ -88,7 +88,7 @@ def prepare_test(data_path, exp_type='exp_v0',from_merged_path=False, generate_m
         dat=np.load(dat_path)
         des=pd.read_csv(des_path,index_col=0)
 
-        dat=dat[:,:,25:(25+97)]
+        dat=dat[:,:,25:(25+window_size)]
 
     else:
         print("Error, experiment type not understood\n input either sim_v0 or exp_v0")
@@ -119,12 +119,14 @@ if __name__ == "__main__":
                         help='model name tag')
     parser.add_argument('--on_gpu', type=str, default='1',
                         help='gpu number')
+    parser.add_argument('--window_size', type=int, default=97,
+                        help='size of spectrogram window')
    
     args = parser.parse_args()
  
     os.environ["CUDA_VISIBLE_DEVICES"] = args.on_gpu
     
-    [x_test,  y_test] = prepare_test(args.test_data_path, exp_type=args.exp_type)
+    [x_test,  y_test] = prepare_test(args.test_data_path, exp_type=args.exp_type,window_size=args.window_size)
         
     model = load_model(args.model_path)
      

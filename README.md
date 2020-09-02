@@ -9,13 +9,14 @@ Arguments:
 --exp_type: experiment type, sim_v0 or exp_v0
 --model_name_tag: model name tag
 --on_gpu: gpu number
+--window_size: size of spectrogram window
 
 Resulting model will be dated and saved in the corresponding path
 
 Sample use case:
 python train.py --model_name_tag 'test0'
 
-Test.py
+Test.py\n
 A function to test a fully convolutional neural net on complex spectrogram data
 
 Arguments:
@@ -25,6 +26,7 @@ Arguments:
 --exp_type: experiment type, sim_v0 or exp_v0
 --report_name_tag: report name tag
 --on_gpu: gpu number
+--window_size: size of spectrogram window
 
 Sample use case:
 python train.py --report_name_tag 'test0'

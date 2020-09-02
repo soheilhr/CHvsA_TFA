@@ -72,7 +72,7 @@ def data_preprocess_simulations(path_dataset='/data/datasets/simulations/Adult_w
 ################ train and validation
 
 
-def prepare_train_val(data_path, exp_type='sim_v0',from_merged_path=False, generate_merged_path=False):
+def prepare_train_val(data_path, exp_type='sim_v0',from_merged_path=False, generate_merged_path=False,window_size=97):
 
     if from_merged_path:
         dat_path = data_path+'dat_merged.npy'
@@ -89,7 +89,7 @@ def prepare_train_val(data_path, exp_type='sim_v0',from_merged_path=False, gener
         
         dat=np.load(dat_path)
         des=pd.read_csv(des_path,index_col=0)
-        dat=dat[:,:,25:(25+97)]
+        dat=dat[:,:,25:(25+window_size)]
 
     else:
         print("Error, experiment type not understood\n input either sim_v0 or exp_v0")
@@ -122,7 +122,7 @@ def prepare_train_val(data_path, exp_type='sim_v0',from_merged_path=False, gener
 ################ test
 
 
-def prepare_test(data_path, exp_type='exp_v0',from_merged_path=False, generate_merged_path=False):
+def prepare_test(data_path, exp_type='exp_v0',from_merged_path=False, generate_merged_path=False,window_size=97):
 
     if from_merged_path:
         dat_path = data_path+'dat_merged.npy'
@@ -139,7 +139,7 @@ def prepare_test(data_path, exp_type='exp_v0',from_merged_path=False, generate_m
         
         dat=np.load(dat_path)
         des=pd.read_csv(des_path,index_col=0)
-        dat=dat[:,:,25:(25+97)]
+        dat=dat[:,:,25:(25+window_size)]
 
 
     else:
@@ -170,13 +170,15 @@ if __name__ == "__main__":
                         help='model name tag')
     parser.add_argument('--on_gpu', type=str, default='1',
                         help='gpu number')
+    parser.add_argument('--window_size', type=int, default=97,
+                        help='size of spectrogram window')
    
     args = parser.parse_args()
  
     os.environ["CUDA_VISIBLE_DEVICES"] = args.on_gpu
     
     
-    [x_train, y_train], [x_val, y_val] = prepare_train_val(args.train_data_path, exp_type=args.exp_type,from_merged_path=False, generate_merged_path=False)
+    [x_train, y_train], [x_val, y_val] = prepare_train_val(args.train_data_path, exp_type=args.exp_type,from_merged_path=False, generate_merged_path=False,window_size=args.window_size)
         
     input_shape = x_train.shape[1:]
     class_size = y_train.shape[-1]
